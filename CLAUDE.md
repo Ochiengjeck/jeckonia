@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-Jeckonia Opiyo Ochieng's personal portfolio, rebuilt as a Next.js (App Router) application with a custom admin CMS. Content (profile, skills, services, portfolio items, testimonials, blog posts, contact info, site settings) lives in SQLite via Prisma and is edited through `/admin`, not hardcoded in markup. The original static HTML/CSS/JS version has been archived to the `legacy/static-site` branch — see "Legacy static site" below.
+Jeckonia Opiyo Ochieng's personal portfolio, rebuilt as a Next.js (App Router) application with a custom admin CMS. Content (profile, skills, services, portfolio items, testimonials, blog posts, contact info, site settings) lives in MySQL via Prisma and is edited through `/admin`, not hardcoded in markup. The original static HTML/CSS/JS version is still in this repo for reference — see "Legacy static site" below.
 
 ## Commands
 
@@ -14,7 +14,7 @@ npm run build           # production build
 npm run start            # run a production build
 npm run lint              # eslint
 
-npx prisma studio          # browse/edit the SQLite DB directly
+npx prisma studio          # browse/edit the DB directly
 npx prisma migrate dev --name <name>   # create + apply a migration after editing schema.prisma
 npx prisma generate           # regenerate the client (into app/generated/prisma) after a schema change
 npx prisma db seed           # re-run prisma/seed.ts against the current DB
@@ -25,7 +25,7 @@ There is no test suite configured. Verify changes by running `npm run build` (ca
 ## Architecture
 
 ### Stack
-Next.js 16 (App Router, Turbopack) + Tailwind CSS v4 + Prisma 7 (SQLite via the `@prisma/adapter-better-sqlite3` driver adapter — Prisma 7 requires an explicit driver adapter, there's no more bundled query engine) + NextAuth.js (Credentials provider, JWT sessions) + Tiptap (blog rich text) + react-icons (`fa6` set).
+Next.js 16 (App Router, Turbopack) + Tailwind CSS v4 + Prisma 7 (MySQL via the `@prisma/adapter-mariadb` driver adapter — Prisma 7 requires an explicit driver adapter, there's no more bundled query engine; the `mariadb` npm driver speaks the MySQL wire protocol so it works against both MySQL and MariaDB servers) + NextAuth.js (Credentials provider, JWT sessions) + Tiptap (blog rich text) + react-icons (`fa6` set).
 
 ### Data model (`prisma/schema.prisma`)
 One row per content entity, fetched via typed helpers in `lib/content.ts` (each wrapped in React's `cache()` so Header/Footer/etc. sharing the same query within one request only hit the DB once). Notable design choices, not obvious from the schema alone:
@@ -35,6 +35,7 @@ One row per content entity, fetched via typed helpers in `lib/content.ts` (each 
 - `Service` is shared by the Services section and the footer's "Services" column — same reasoning.
 - `ContactInfoItem.type` (LOCATION/EMAIL/PHONE/WEBSITE) drives a **derived** href via `contactHref()` in `lib/content.ts` — the `mailto:`/`tel:` prefix is computed from `type`, never stored, so the display value and the link can't drift apart.
 - `PortfolioCategory` is a table (not an enum) so categories are admin-manageable.
+- Long free-text fields (`aboutBioHtml`, `contentHtml`, `message`, etc.) are marked `@db.Text` — MySQL's default `String` mapping is `VARCHAR(191)`, which would silently truncate blog posts/bios/messages without it. MySQL also can't have a `@default(...)` on a `@db.Text` column (`BLOB/TEXT/GEOMETRY/JSON column can't have a default value`), so those fields are required with no DB-level default instead — application code (`prisma/seed.ts`, the Server Actions in `lib/actions/`) always supplies an explicit value (even `""`) on create, so this is safe in practice.
 
 ### Auth
 `lib/auth.ts` (NextAuth options, Credentials provider, bcrypt) + `proxy.ts` (Next 16 renamed `middleware.ts` → `proxy.ts`; this repo already uses the new convention) protecting `/admin/**` and `/api/admin/**`, redirecting to `/admin/login`. Every Server Action that mutates data also calls `requireAdmin()` (`lib/requireAdmin.ts`) directly — don't rely on the proxy matcher alone for a Server Action's auth, since a future matcher change could silently stop covering it.
@@ -64,8 +65,9 @@ Passenger expects the startup file to listen on the port it assigns via `process
    - Application root: the path this repo is checked out to (e.g. `~/jeckonia`)
    - Application URL: your domain/subdomain
    - Application startup file: `server.js`
-2. Add environment variables in the same UI (not committed anywhere — see `.gitignore`'s `.env*` rule): `DATABASE_URL` (e.g. `file:./data/prod.db`, resolved relative to `prisma.config.ts`'s directory, i.e. the repo root — **not** relative to `prisma/schema.prisma`, which is where Prisma <7 resolved sqlite paths), `NEXTAUTH_SECRET`, `NEXTAUTH_URL` (your real domain), `NODE_ENV=production`. `ADMIN_SEED_EMAIL`/`ADMIN_SEED_PASSWORD` are only needed for the one-time seed run below, not at runtime afterward.
-3. SSH in (or use the cPanel UI's "Run NPM Install" button, which activates the app's `nodevenv` for you) and run, from the application root:
+2. Create a MySQL database + user in cPanel (**MySQL Databases**), and note the database name, username, password, and host (usually `localhost` when the app and DB are on the same account).
+3. Add environment variables in the Node.js App UI (not committed anywhere — see `.gitignore`'s `.env*` rule): `DATABASE_URL="mysql://USER:PASSWORD@HOST:PORT/DATABASE"` using the credentials from step 2, `NEXTAUTH_SECRET`, `NEXTAUTH_URL` (your real domain), `NODE_ENV=production`. `ADMIN_SEED_EMAIL`/`ADMIN_SEED_PASSWORD` are only needed for the one-time seed run below, not at runtime afterward.
+4. SSH in (or use the cPanel UI's "Run NPM Install" button, which activates the app's `nodevenv` for you) and run, from the application root:
    ```
    npm ci                        # NOT --omit=dev / --only=production —
                                   # the Prisma CLI is a devDependency and
@@ -75,15 +77,18 @@ Passenger expects the startup file to listen on the port it assigns via `process
    npx prisma db seed             # first deploy only — seeds real content + admin user
    npm run build
    ```
-   `better-sqlite3` is a native addon — installing it here (on Spaceship's own server/architecture) rather than uploading a `node_modules` built elsewhere is what makes it work.
-4. Click **Restart** in the Node.js App manager (or `touch tmp/restart.txt` in the app root) to have Passenger pick up the build.
-5. Log in at `/admin` with `ADMIN_SEED_EMAIL`/`ADMIN_SEED_PASSWORD` and immediately change the password via `/admin/account`.
+   The cPanel DB user generally needs no more than the standard `ALL PRIVILEGES` on its own database (`migrate deploy` applies committed SQL directly — it doesn't need a shadow database the way `migrate dev` does, so no extra `CREATE DATABASE`-level grant is required in production).
+5. Click **Restart** in the Node.js App manager (or `touch tmp/restart.txt` in the app root) to have Passenger pick up the build.
+6. Log in at `/admin` with `ADMIN_SEED_EMAIL`/`ADMIN_SEED_PASSWORD` and immediately change the password via `/admin/account`.
 
 ### Every subsequent deploy
 `git pull` (never re-clone over the app root — see below) → `npm ci` → `npx prisma migrate deploy` (only does something if `prisma/migrations/` has new folders) → `npm run build` → Restart in cPanel. `./deploy.sh [app-root]` runs exactly this sequence and stops on the first failure — run it from the app root over SSH.
 
 ### Persistent state
-`data/` (the SQLite file) and `public/uploads/` (admin-uploaded media) are the entire persistence layer, both gitignored. They live inside the app root's normal (persistent) home-directory storage, so they survive restarts on their own — the only way to lose them is a deploy step that deletes/re-clones the app root instead of updating it in place. Back up `data/*.db` and `public/uploads/` **together**; restoring one without the other leaves either dangling image references or an empty `Media` log.
+`public/uploads/` (admin-uploaded media) is gitignored runtime content living in the app root's normal (persistent) home-directory storage — it survives restarts on its own, the only way to lose it is a deploy step that deletes/re-clones the app root instead of updating it in place. The database itself now lives in cPanel's MySQL server, not a file in the app root, so back it up via cPanel's own MySQL backup/export tools (e.g. `mysqldump`) on whatever schedule the host provides — do that alongside backing up `public/uploads/`, since restoring one without the other leaves either dangling image references or an empty `Media` log.
+
+### Local development database
+Local dev talks to a local MySQL/MariaDB server via the same `@prisma/adapter-mariadb` adapter — there's no SQLite fallback. Point `DATABASE_URL` in `.env` at a local database (see the comment in `.env` — it defaults to a `jeckonia_dev` database/user pair), or at a remote one if you don't run MySQL locally. `npx prisma migrate dev` needs a DB user with rights to create a temporary shadow database (it diffs against a throwaway DB to compute migration SQL); a plain `GRANT ALL ON jeckonia_dev.*` isn't enough for that — either grant the local dev user broader rights or use `root` locally. Production's `migrate deploy` doesn't have this requirement.
 
 ## Legacy static site
 

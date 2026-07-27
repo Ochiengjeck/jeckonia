@@ -50,16 +50,41 @@ One row per content entity, fetched via typed helpers in `lib/content.ts` (each 
 ### Public site
 `app/page.tsx` composes `components/sections/*` (Server Components, one Prisma-backed fetch each). Interactive behavior lives in `components/interactive/*` as small Client Component leaves (theme toggle, mobile nav, scroll-spy, portfolio filter, testimonial carousel, lightbox, typewriter, the scroll-reveal `Reveal` wrapper) — the goal is that a Server Component parent can pass server-rendered children straight into a Client Component without the parent itself becoming client-side. Blog posts get real routes at `app/blog/[slug]/page.tsx`.
 
-## Deployment
+## Deployment (Spaceship hosting)
 
-This app is meant to run as a **persistent Node.js process** (`next start`), not on serverless/edge — both SQLite and `public/uploads/` need a real, persistent filesystem.
+This app targets **Spaceship's cPanel "Setup Node.js App" tool** (Advanced → Development Tools → Node.js App), which runs Node apps under **Phusion Passenger** via CloudLinux. Passenger is both the process supervisor (auto-restart on crash, starts on boot) and the reverse proxy/TLS terminator through the existing Apache/LiteSpeed + AutoSSL setup — there's no separate PM2 or Nginx config to manage.
 
-- **Env vars** (`.env`, never committed — see `.gitignore`): `DATABASE_URL` (e.g. `file:./data/prod.db`, resolved relative to `prisma.config.ts`'s own directory, i.e. the repo root — **not** relative to `prisma/schema.prisma`, which is where Prisma <7 resolved sqlite paths), `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, `ADMIN_SEED_EMAIL`/`ADMIN_SEED_PASSWORD` (seed-time only).
-- **Persistent state**: `data/` (the SQLite file) and `public/uploads/` (admin-uploaded media) are the entire persistence layer. Both are gitignored. A deploy must never re-clone over these paths — pull/build in place (`git pull && npm ci && npx prisma migrate deploy && npm run build`), then restart the process.
-- **Process management**: run under PM2 (or similar) so it survives reboots/crashes; put a reverse proxy (Nginx etc.) in front for TLS termination.
-- **Backups**: back up `data/*.db` and `public/uploads/` together — restoring one without the other leaves dangling image references or an empty Media log.
-- First login uses `ADMIN_SEED_EMAIL`/`ADMIN_SEED_PASSWORD` from `.env` at seed time — change the password via `/admin/account` immediately after.
+### Why a custom `server.js`
+Passenger expects the startup file to listen on the port it assigns via `process.env.PORT`; the plain Next.js CLI (`next start`) doesn't reliably pick that up when spawned the way Passenger spawns it. `server.js` at the repo root wraps Next's custom-server API (`next()` + `app.prepare()` + a plain `http.createServer`) to listen on `process.env.PORT` explicitly. It requires `next build` to have already run — it serves the production build, not source. `npm run start:passenger` runs it locally if you want to sanity-check the exact entry point Passenger will use.
+
+### One-time setup in cPanel
+1. **Setup Node.js App** → Create Application:
+   - Node.js version: 20.19+ (see `engines.node` in `package.json`; Prisma 7 requires it)
+   - Application mode: **Production**
+   - Application root: the path this repo is checked out to (e.g. `~/jeckonia`)
+   - Application URL: your domain/subdomain
+   - Application startup file: `server.js`
+2. Add environment variables in the same UI (not committed anywhere — see `.gitignore`'s `.env*` rule): `DATABASE_URL` (e.g. `file:./data/prod.db`, resolved relative to `prisma.config.ts`'s directory, i.e. the repo root — **not** relative to `prisma/schema.prisma`, which is where Prisma <7 resolved sqlite paths), `NEXTAUTH_SECRET`, `NEXTAUTH_URL` (your real domain), `NODE_ENV=production`. `ADMIN_SEED_EMAIL`/`ADMIN_SEED_PASSWORD` are only needed for the one-time seed run below, not at runtime afterward.
+3. SSH in (or use the cPanel UI's "Run NPM Install" button, which activates the app's `nodevenv` for you) and run, from the application root:
+   ```
+   npm ci                        # NOT --omit=dev / --only=production —
+                                  # the Prisma CLI is a devDependency and
+                                  # the postinstall script needs it to run
+                                  # `prisma generate`
+   npx prisma migrate deploy      # applies committed migrations
+   npx prisma db seed             # first deploy only — seeds real content + admin user
+   npm run build
+   ```
+   `better-sqlite3` is a native addon — installing it here (on Spaceship's own server/architecture) rather than uploading a `node_modules` built elsewhere is what makes it work.
+4. Click **Restart** in the Node.js App manager (or `touch tmp/restart.txt` in the app root) to have Passenger pick up the build.
+5. Log in at `/admin` with `ADMIN_SEED_EMAIL`/`ADMIN_SEED_PASSWORD` and immediately change the password via `/admin/account`.
+
+### Every subsequent deploy
+`git pull` (never re-clone over the app root — see below) → `npm ci` → `npx prisma migrate deploy` (only does something if `prisma/migrations/` has new folders) → `npm run build` → Restart in cPanel. `./deploy.sh [app-root]` runs exactly this sequence and stops on the first failure — run it from the app root over SSH.
+
+### Persistent state
+`data/` (the SQLite file) and `public/uploads/` (admin-uploaded media) are the entire persistence layer, both gitignored. They live inside the app root's normal (persistent) home-directory storage, so they survive restarts on their own — the only way to lose them is a deploy step that deletes/re-clones the app root instead of updating it in place. Back up `data/*.db` and `public/uploads/` **together**; restoring one without the other leaves either dangling image references or an empty `Media` log.
 
 ## Legacy static site
 
-The original static HTML/CSS/JS version (`index.html`, `styles.css`, `script.js`, `Portfolio.html`, root `assets/`) has been archived to the `legacy/static-site` branch for reference and removed from `main`. Don't resurrect these files on `main` — the Next.js app in `app/`/`components/`/`lib/`/`prisma/` is the current site.
+The original static HTML/CSS/JS version (`index.html`, `styles.css`, `script.js`, `Portfolio.html`, root `assets/`) is still sitting in this repo alongside the Next.js app, kept for reference for now — it is **not** wired up to anything and isn't the current site. The Next.js app in `app/`/`components/`/`lib`/`prisma/` is what's live. These files are slated to eventually move to a `legacy/static-site` branch and be removed from `main`, but that hasn't happened yet.

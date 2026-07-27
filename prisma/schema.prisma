@@ -243,7 +243,8 @@ model Media {
   id           String       @id @default(cuid())
   filename     String
   originalName String
-  path         String
+  path         String // full https:// URL (Cloudinary secure_url)
+  publicId     String? // Cloudinary public_id, needed to later delete/manage the asset
   mimeType     String
   size         Int
   purpose      MediaPurpose

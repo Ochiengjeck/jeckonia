@@ -1,21 +1,18 @@
 import { NextResponse } from "next/server";
-import { randomUUID } from "crypto";
-import { mkdir, writeFile } from "fs/promises";
-import path from "path";
-import sharp from "sharp";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { uploadToCloudinary } from "@/lib/cloudinary";
 
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB
 
-const ALLOWED_MIME_TO_EXT: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-  "image/gif": "gif",
-  "application/pdf": "pdf",
-};
+const ALLOWED_MIME_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "application/pdf",
+]);
 
 const VALID_PURPOSES = [
   "PROFILE",
@@ -28,7 +25,7 @@ const VALID_PURPOSES = [
   "OTHER",
 ] as const;
 
-const PURPOSE_DIR: Record<(typeof VALID_PURPOSES)[number], string> = {
+const PURPOSE_FOLDER: Record<(typeof VALID_PURPOSES)[number], string> = {
   PROFILE: "profile",
   ABOUT: "about",
   PORTFOLIO_THUMB: "portfolio",
@@ -60,42 +57,27 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "File too large (max 10MB)" }, { status: 400 });
   }
 
-  const ext = ALLOWED_MIME_TO_EXT[file.type];
-  if (!ext) {
+  if (!ALLOWED_MIME_TYPES.has(file.type)) {
     return NextResponse.json({ error: "Unsupported file type" }, { status: 400 });
   }
 
-  const filename = `${randomUUID()}.${ext}`;
-  const dir = PURPOSE_DIR[purpose];
-  const uploadDir = path.join(process.cwd(), "public", "uploads", dir);
-  await mkdir(uploadDir, { recursive: true });
-
   const buffer = Buffer.from(await file.arrayBuffer());
-  const filePath = path.join(uploadDir, filename);
+  const folder = `jeckonia/${PURPOSE_FOLDER[purpose]}`;
+  const resourceType = file.type === "application/pdf" ? "raw" : "image";
 
-  const isRasterImage = ["jpg", "png", "webp", "gif"].includes(ext);
-  if (isRasterImage) {
-    // Re-encode through sharp to strip EXIF/metadata and cap dimensions,
-    // rather than trusting the uploaded bytes as-is.
-    await sharp(buffer)
-      .resize({ width: 2000, height: 2000, fit: "inside", withoutEnlargement: true })
-      .toFile(filePath);
-  } else {
-    await writeFile(filePath, buffer);
-  }
-
-  const publicPath = `/uploads/${dir}/${filename}`;
+  const result = await uploadToCloudinary(buffer, { folder, resourceType });
 
   await prisma.media.create({
     data: {
-      filename,
+      filename: result.public_id,
       originalName: file.name,
-      path: publicPath,
+      path: result.secure_url,
+      publicId: result.public_id,
       mimeType: file.type,
       size: file.size,
       purpose,
     },
   });
 
-  return NextResponse.json({ path: publicPath });
+  return NextResponse.json({ path: result.secure_url });
 }

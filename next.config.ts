@@ -6,6 +6,10 @@ const nextConfig: NextConfig = {
       // Temporary placeholder images seeded for portfolio/blog items until
       // real screenshots are uploaded through the admin panel.
       { protocol: "https", hostname: "picsum.photos" },
+      // Admin-uploaded images (profile/about/portfolio/testimonial/blog
+      // cover photos), stored in Cloudinary instead of the local
+      // filesystem -- see app/api/admin/upload/route.ts.
+      { protocol: "https", hostname: "res.cloudinary.com" },
     ],
   },
   experimental: {

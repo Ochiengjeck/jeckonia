@@ -51,11 +51,13 @@ async function main() {
       jobTitle: "Software Engineer",
       heroDescription:
         "I'm a passionate software engineer with expertise in building robust and scalable applications. I specialize in full-stack development, cloud architecture, and delivering high-quality software solutions that solve real-world problems.",
-      heroImageUrl: "/uploads/profile/ppic.jpg",
+      heroImageUrl:
+        "https://res.cloudinary.com/dv5ixzxuz/image/upload/v1785172089/jeckonia/profile/y51qtau2vzlshaa1l8vi.jpg",
       aboutSectionTitle: "About Me",
       aboutSectionSubtitle:
         "Get to know me better - my background, experience, and what drives me as a software engineer.",
-      aboutImageUrl: "/uploads/about/2nrf.jpg",
+      aboutImageUrl:
+        "https://res.cloudinary.com/dv5ixzxuz/image/upload/v1785172093/jeckonia/about/ewcv1qan0wjsnergeazp.jpg",
       aboutHeading: "I'm Jeckonia, a Professional Software Engineer",
       aboutBioHtml:
         "<p>I am a dedicated software engineer with over 5 years of experience in developing innovative software solutions. My journey in the tech world began with a deep curiosity about how things work, which eventually led me to pursue a career in software engineering.</p><p>I specialize in full-stack development, creating seamless and responsive applications that deliver exceptional user experiences. My expertise spans across various programming languages and frameworks, allowing me to adapt to different project requirements and challenges.</p>",
@@ -279,21 +281,24 @@ async function main() {
         "Jeckonia is an exceptional software engineer. His technical expertise and problem-solving skills helped us deliver a complex project ahead of schedule. He's a valuable asset to any development team.",
       authorName: "Wilfred Mutwiri",
       authorRole: "CTO, DestiKert Technologies",
-      authorImageUrl: "/uploads/testimonials/wilfred.jpg",
+      authorImageUrl:
+        "https://res.cloudinary.com/dv5ixzxuz/image/upload/v1785172095/jeckonia/testimonials/dsr23e7smyvt3tfr7gpz.jpg",
     },
     {
       quote:
         "Working with Jeckonia was a pleasure. He understood our business requirements perfectly and delivered a solution that exceeded our expectations. His attention to detail and commitment to quality are impressive.",
       authorName: "Abigail Kipchirchir",
       authorRole: "Product Manager, Digital Solutions",
-      authorImageUrl: "/uploads/testimonials/abby.jpg",
+      authorImageUrl:
+        "https://res.cloudinary.com/dv5ixzxuz/image/upload/v1785172097/jeckonia/testimonials/bbkl4aknfwczyprid3lf.jpg",
     },
     {
       quote:
         "Jeckonia's expertise in cloud architecture saved us thousands in infrastructure costs. He redesigned our system for better scalability and performance. I highly recommend his services to anyone looking for a skilled software engineer.",
       authorName: "Mercy Jepchirchir",
       authorRole: "CEO, Cloud Enterprises",
-      authorImageUrl: "/uploads/testimonials/mercy.jpg",
+      authorImageUrl:
+        "https://res.cloudinary.com/dv5ixzxuz/image/upload/v1785172099/jeckonia/testimonials/brnalfxfqemvewsqlldq.jpg",
     },
   ];
   for (const [i, t] of testimonials.entries()) {

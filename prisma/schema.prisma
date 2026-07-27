@@ -1,0 +1,251 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum SkillCategory {
+  TECHNICAL
+  PROFESSIONAL
+}
+
+enum CtaStyle {
+  PRIMARY
+  OUTLINE
+}
+
+enum SocialPlatform {
+  GITHUB
+  LINKEDIN
+  TWITTER
+  INSTAGRAM
+  DRIBBBLE
+  OTHER
+}
+
+enum ContactInfoType {
+  LOCATION
+  EMAIL
+  PHONE
+  WEBSITE
+  CUSTOM
+}
+
+enum BlogStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum MediaPurpose {
+  PROFILE
+  ABOUT
+  PORTFOLIO_THUMB
+  PORTFOLIO_FULL
+  TESTIMONIAL
+  BLOG_COVER
+  CV
+  OTHER
+}
+
+// Single admin account. A real table (not an env-hardcoded credential) so
+// /admin/account can let the admin change their own email/password.
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// Singleton row (id is always "singleton") for global/SEO settings.
+model SiteSettings {
+  id                  String   @id @default("singleton")
+  siteTitle           String   @default("Jeckonia Opiyo | Software Engineer")
+  metaDescription      String   @default("")
+  ogImageUrl           String?
+  footerTagline        String   @default("")
+  designerCreditText   String   @default("Designed with love by Jeckonia")
+  designerCreditUrl    String?
+  updatedAt            DateTime @updatedAt
+}
+
+// Singleton row (id is always "singleton") for hero + about section content.
+model Profile {
+  id                   String   @id @default("singleton")
+  greeting             String   @default("Hello, I'm")
+  name                 String
+  jobTitle             String
+  heroDescription      String
+  heroImageUrl         String?
+  aboutSectionTitle    String   @default("About Me")
+  aboutSectionSubtitle String   @default("")
+  aboutImageUrl        String?
+  aboutHeading         String   @default("")
+  aboutBioHtml         String   @default("")
+  email                String
+  phone                String
+  location             String
+  availabilityText     String   @default("Available for freelance")
+  cvFileUrl            String?
+  updatedAt            DateTime @updatedAt
+
+  ctaButtons      HeroCtaButton[]
+  experienceStats ExperienceStat[]
+}
+
+model HeroCtaButton {
+  id        String   @id @default(cuid())
+  profileId String
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  label     String
+  href      String
+  style     CtaStyle @default(PRIMARY)
+  order     Int      @default(0)
+}
+
+model ExperienceStat {
+  id        String  @id @default(cuid())
+  profileId String
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  number    String
+  label     String
+  order     Int     @default(0)
+}
+
+// Shared by the Hero section and the Footer (previously duplicated markup).
+model SocialLink {
+  id       String         @id @default(cuid())
+  platform SocialPlatform
+  label    String?
+  iconKey  String?
+  url      String
+  order    Int            @default(0)
+}
+
+// Drives the header nav; the Footer's "Quick Links" reuses this same
+// collection instead of a second hardcoded list. `visible` lets the admin
+// hide an entry (e.g. Testimonials) without a code change.
+model NavLink {
+  id      String  @id @default(cuid())
+  label   String
+  anchor  String
+  order   Int     @default(0)
+  visible Boolean @default(true)
+}
+
+// One unified model instead of 3 separate lists (technical bars / tech icon
+// badges / professional bars). `percent` null => icon-only badge (e.g. Docker).
+// `iconUrl` null => bar-only entry (e.g. the professional skills).
+model Skill {
+  id       String        @id @default(cuid())
+  name     String
+  percent  Int?
+  iconUrl  String?
+  category SkillCategory
+  order    Int           @default(0)
+}
+
+// Shared by the Services section and the Footer's "Services" column
+// (previously duplicated titles).
+model Service {
+  id          String @id @default(cuid())
+  icon        String
+  title       String
+  description String
+  linkLabel   String @default("Learn More")
+  linkHref    String @default("#")
+  order       Int    @default(0)
+}
+
+// A table (not an enum) so the admin can add/rename portfolio categories.
+model PortfolioCategory {
+  id    String @id @default(cuid())
+  key   String @unique
+  label String
+  order Int    @default(0)
+
+  items PortfolioItem[]
+}
+
+model PortfolioItem {
+  id                String            @id @default(cuid())
+  title             String
+  description       String
+  categoryId        String
+  category          PortfolioCategory @relation(fields: [categoryId], references: [id])
+  thumbnailImageUrl String
+  fullImageUrl      String
+  externalLink      String?
+  featured          Boolean           @default(false)
+  order             Int               @default(0)
+}
+
+model Testimonial {
+  id             String @id @default(cuid())
+  quote          String
+  authorName     String
+  authorRole     String
+  authorImageUrl String
+  order          Int    @default(0)
+}
+
+model BlogPost {
+  id            String     @id @default(cuid())
+  slug          String     @unique
+  title         String
+  excerpt       String
+  contentHtml   String
+  coverImageUrl String?
+  status        BlogStatus @default(DRAFT)
+  publishedAt   DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+// `type` drives a derived href (mailto:/tel:/raw url) at render time instead
+// of storing href separately, which is what caused the original tel/display
+// phone number mismatch.
+model ContactInfoItem {
+  id           String          @id @default(cuid())
+  type         ContactInfoType
+  icon         String
+  label        String
+  displayValue String
+  order        Int             @default(0)
+}
+
+model ContactSubmission {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model NewsletterSubscriber {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  subscribedAt DateTime @default(now())
+}
+
+// Tracks files uploaded through the admin panel (not the bundled dev-owned
+// icons in public/icons, which are never re-uploaded through the CMS).
+model Media {
+  id           String       @id @default(cuid())
+  filename     String
+  originalName String
+  path         String
+  mimeType     String
+  size         Int
+  purpose      MediaPurpose
+  createdAt    DateTime     @default(now())
+}

@@ -1,0 +1,112 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --primary-color: #5e72e4;
+  --primary-light: #8f9ff3;
+  --primary-dark: #324cdd;
+  --secondary-color: #11cdef;
+  --dark-color: #32325d;
+  --light-color: #f6f9fc;
+  --success-color: #2dce89;
+  --danger-color: #f5365c;
+  --warning-color: #fb6340;
+  --info-color: #11cdef;
+  --background: #f7f8fc;
+  --text-color: #525f7f;
+  --card-bg: #ffffff;
+  --icon-color: #525f7f;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --card-shadow: 10px 10px 20px var(--shadow-color), -10px -10px 20px rgba(255, 255, 255, 0.5);
+  --inset-shadow: inset 5px 5px 10px var(--shadow-color), inset -5px -5px 10px rgba(255, 255, 255, 0.5);
+}
+
+.dark {
+  --primary-color: #6f83ff;
+  --primary-light: #a5b4ff;
+  --primary-dark: #4d5ecc;
+  --secondary-color: #00d1f7;
+  --dark-color: #e6e9f4;
+  --light-color: #1a1f36;
+  --success-color: #2dce89;
+  --danger-color: #f5365c;
+  --warning-color: #fb6340;
+  --info-color: #11cdef;
+  --background: #131629;
+  --text-color: #e6e9f4;
+  --card-bg: #1f2641;
+  --icon-color: #e6e9f4;
+  --shadow-color: rgba(0, 0, 0, 0.3);
+  --card-shadow: 10px 10px 20px rgba(0, 0, 0, 0.3), -10px -10px 20px rgba(35, 40, 65, 0.5);
+  --inset-shadow: inset 5px 5px 10px rgba(0, 0, 0, 0.3), inset -5px -5px 10px rgba(35, 40, 65, 0.5);
+}
+
+@theme inline {
+  --color-primary: var(--primary-color);
+  --color-primary-light: var(--primary-light);
+  --color-primary-dark: var(--primary-dark);
+  --color-secondary: var(--secondary-color);
+  --color-heading: var(--dark-color);
+  --color-surface-light: var(--light-color);
+  --color-success: var(--success-color);
+  --color-danger: var(--danger-color);
+  --color-warning: var(--warning-color);
+  --color-info: var(--info-color);
+  --color-background: var(--background);
+  --color-text: var(--text-color);
+  --color-card: var(--card-bg);
+  --color-icon: var(--icon-color);
+
+  --radius-card: 16px;
+
+  --shadow-card: var(--card-shadow);
+  --shadow-inset-card: var(--inset-shadow);
+
+  --font-sans: var(--font-poppins);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--text-color);
+  font-family: var(--font-sans), sans-serif;
+  overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+::selection {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-dark);
+}
+
+@keyframes bg-float {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-1000px) rotate(720deg);
+    opacity: 0;
+  }
+}

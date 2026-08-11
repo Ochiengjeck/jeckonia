@@ -35,7 +35,7 @@ TOTAL_STEPS=5
 
 step 1 "Pulling latest changes" git pull
 step 2 "Installing dependencies" npm ci
-step 3 "Applying database migrations" npx prisma migrate deploy
+# step 3 "Applying database migrations" npx prisma migrate deploy
 step 4 "Building production bundle" npm run build
 
 echo ""

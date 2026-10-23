@@ -14,6 +14,7 @@ export function Typewriter({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     let i = 0;
     const timeout = setTimeout(function type() {
       el.textContent = text.slice(0, i);

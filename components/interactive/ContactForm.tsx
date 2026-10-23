@@ -5,7 +5,7 @@ import { useState, type FormEvent } from "react";
 type Status = "idle" | "submitting" | "success" | "error";
 
 const inputClass =
-  "w-full rounded-card bg-background px-5 py-3 text-text shadow-inset-card outline-none focus:ring-2 focus:ring-primary/30";
+  "w-full border-b border-muted-border bg-transparent py-3 text-foreground placeholder:text-text/50 outline-none focus:border-accent";
 
 export function ContactForm() {
   const [status, setStatus] = useState<Status>("idle");
@@ -63,7 +63,7 @@ export function ContactForm() {
       <button
         type="submit"
         disabled={status === "submitting"}
-        className="rounded-card bg-primary px-8 py-3 font-medium text-white shadow-[0_4px_6px_rgba(50,50,93,0.11),0_1px_3px_rgba(0,0,0,0.08)] transition-all duration-300 hover:-translate-y-1 hover:bg-primary-dark disabled:opacity-60"
+        className="rounded-card bg-accent px-8 py-3 font-mono text-xs uppercase tracking-widest text-background transition-colors duration-200 hover:bg-accent-dark disabled:opacity-60"
       >
         {status === "submitting" ? "Sending..." : "Send Message"}
       </button>

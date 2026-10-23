@@ -52,7 +52,7 @@ export function Lightbox({
         src={src}
         alt={alt}
         onClick={(e) => e.stopPropagation()}
-        className="max-h-[90vh] max-w-[90vw] rounded border-4 border-white object-contain"
+        className="max-h-[90vh] max-w-[90vw] border border-foreground/20 object-contain"
       />
     </div>
   );

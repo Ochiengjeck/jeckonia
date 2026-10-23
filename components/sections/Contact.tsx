@@ -1,54 +1,59 @@
-import { getContactInfo, contactHref } from "@/lib/content";
+import { getContactInfo, contactHref, getSectionVisibility } from "@/lib/content";
 import { SectionTitle } from "@/components/ui/SectionTitle";
 import { Icon } from "@/components/ui/Icon";
 import { ContactForm } from "@/components/interactive/ContactForm";
+import { Reveal } from "@/components/interactive/Reveal";
+import { SECTION_IDS } from "@/lib/sectionIds";
 
-const headingClass =
-  "relative mb-[30px] pb-2.5 text-2xl font-semibold text-heading after:absolute after:bottom-0 after:left-0 after:h-[3px] after:w-[50px] after:rounded after:bg-primary";
+const headingClass = "mb-10 font-mono text-label tracking-widest text-accent uppercase";
 
 export async function Contact() {
-  const contactInfo = await getContactInfo();
+  const [contactInfo, visibility] = await Promise.all([
+    getContactInfo(),
+    getSectionVisibility(),
+  ]);
+  if (visibility.get(SECTION_IDS.contact) === false) return null;
 
   return (
-    <section id="contact" className="scroll-mt-24 py-[100px]">
+    <section id={SECTION_IDS.contact} className="scroll-mt-24 py-[100px]">
       <div className="container mx-auto max-w-[1200px] px-5">
         <SectionTitle
+          index={7}
+          label="Contact"
           title="Contact Me"
           subtitle="Feel free to reach out to me for any inquiries, project discussions, or collaboration opportunities."
         />
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
-          <div className="rounded-card bg-card p-10 shadow-card">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:divide-x lg:divide-muted-border">
+          <Reveal variant="fade-right">
             <h3 className={headingClass}>Get In Touch</h3>
             {contactInfo.map((item) => {
               const href = contactHref(item);
               return (
-                <div key={item.id} className="mb-[30px] flex">
-                  <span className="mr-5 flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-full bg-background text-xl text-primary shadow-card">
+                <div key={item.id} className="mb-8 flex items-start gap-5">
+                  <span className="shrink-0 text-xl text-accent">
                     <Icon name={item.icon} />
                   </span>
                   <div>
-                    <h4 className="mb-1.5 text-lg font-semibold text-heading">
-                      {item.label}
-                    </h4>
+                    <h4 className="mb-1.5 text-lg font-bold text-foreground">{item.label}</h4>
                     {href ? (
                       <a
                         href={href}
-                        className="text-[15px] text-text transition-colors duration-300 hover:text-primary"
+                        className="text-text transition-colors duration-200 hover:text-accent"
                       >
                         {item.displayValue}
                       </a>
                     ) : (
-                      <p className="text-[15px] text-text">{item.displayValue}</p>
+                      <p className="text-text">{item.displayValue}</p>
                     )}
                   </div>
                 </div>
               );
             })}
-          </div>
-          <div className="rounded-card bg-card p-10 shadow-card">
+          </Reveal>
+          <Reveal variant="fade-left" className="lg:pl-16">
             <h3 className={headingClass}>Send Message</h3>
             <ContactForm />
-          </div>
+          </Reveal>
         </div>
       </div>
     </section>

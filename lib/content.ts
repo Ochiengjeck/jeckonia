@@ -26,6 +26,16 @@ export const getNavLinks = cache(async () => {
   });
 });
 
+// Maps an anchor slug (e.g. "about", no "#") to whether that section should
+// render at all -- distinct from getNavLinks(), which only controls the nav
+// menu/footer links. A missing anchor is treated as visible (only an
+// explicit false hides), so deleting a NavLink row can't accidentally hide
+// its section.
+export const getSectionVisibility = cache(async () => {
+  const navLinks = await prisma.navLink.findMany();
+  return new Map(navLinks.map((l) => [l.anchor.replace(/^#/, ""), l.visible]));
+});
+
 export async function getSkills() {
   const skills = await prisma.skill.findMany({ orderBy: { order: "asc" } });
   return {

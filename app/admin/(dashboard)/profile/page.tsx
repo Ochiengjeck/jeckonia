@@ -59,6 +59,14 @@ export default async function ProfilePage() {
             defaultValue={profile?.heroImageUrl ?? ""}
             purpose="PROFILE"
           />
+          <label className="flex items-center gap-2 text-sm text-text">
+            <input
+              type="checkbox"
+              name="showHeroImage"
+              defaultChecked={profile?.showHeroImage ?? true}
+            />
+            Show hero image on site
+          </label>
         </fieldset>
 
         <fieldset className="space-y-4 rounded-card bg-card p-6 shadow-card">
@@ -119,6 +127,14 @@ export default async function ProfilePage() {
             defaultValue={profile?.aboutImageUrl ?? ""}
             purpose="ABOUT"
           />
+          <label className="flex items-center gap-2 text-sm text-text">
+            <input
+              type="checkbox"
+              name="showAboutImage"
+              defaultChecked={profile?.showAboutImage ?? true}
+            />
+            Show about image on site
+          </label>
           <div>
             <label className={labelClass}>Heading</label>
             <input
@@ -169,12 +185,28 @@ export default async function ProfilePage() {
             accept="application/pdf"
             preview={false}
           />
+          <label className="flex items-center gap-2 text-sm text-text">
+            <input
+              type="checkbox"
+              name="showCvButton"
+              defaultChecked={profile?.showCvButton ?? true}
+            />
+            Show &quot;Download CV&quot; button on site
+          </label>
         </fieldset>
 
         <fieldset className="space-y-4 rounded-card bg-card p-6 shadow-card">
           <legend className="mb-2 px-1 font-semibold text-heading">
             Experience Stats (leave number/label blank to omit a slot)
           </legend>
+          <label className="flex items-center gap-2 text-sm text-text">
+            <input
+              type="checkbox"
+              name="showExperienceStats"
+              defaultChecked={profile?.showExperienceStats ?? true}
+            />
+            Show experience stats on site
+          </label>
           {Array.from({ length: STAT_SLOTS }).map((_, i) => {
             const stat = profile?.experienceStats[i];
             return (

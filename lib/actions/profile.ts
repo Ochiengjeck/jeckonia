@@ -27,6 +27,10 @@ export async function updateProfile(formData: FormData) {
     location: formData.get("location") as string,
     availabilityText: formData.get("availabilityText") as string,
     cvFileUrl: (formData.get("cvFileUrl") as string) || null,
+    showHeroImage: formData.get("showHeroImage") === "on",
+    showExperienceStats: formData.get("showExperienceStats") === "on",
+    showAboutImage: formData.get("showAboutImage") === "on",
+    showCvButton: formData.get("showCvButton") === "on",
   };
 
   await prisma.profile.upsert({

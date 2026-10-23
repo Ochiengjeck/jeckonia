@@ -15,6 +15,9 @@ export async function updateSiteSettings(formData: FormData) {
     footerTagline: formData.get("footerTagline") as string,
     designerCreditText: formData.get("designerCreditText") as string,
     designerCreditUrl: (formData.get("designerCreditUrl") as string) || null,
+    showSocialLinks: formData.get("showSocialLinks") === "on",
+    showTechIcons: formData.get("showTechIcons") === "on",
+    showNewsletter: formData.get("showNewsletter") === "on",
   };
 
   await prisma.siteSettings.upsert({

@@ -10,6 +10,7 @@ const links = [
   { href: "/admin/profile", label: "Profile", icon: "FaUser" },
   { href: "/admin/social-links", label: "Social Links", icon: "FaShareNodes" },
   { href: "/admin/nav-links", label: "Nav Links", icon: "FaBars" },
+  { href: "/admin/visibility", label: "Section Visibility", icon: "FaEye" },
   { href: "/admin/skills", label: "Skills", icon: "FaChartSimple" },
   { href: "/admin/services", label: "Services", icon: "FaGear" },
   { href: "/admin/portfolio", label: "Portfolio", icon: "FaBriefcase" },

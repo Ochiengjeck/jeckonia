@@ -1,14 +1,13 @@
 import type { Metadata } from "next";
-import { Poppins } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/components/providers/ThemeProvider";
-import { BackgroundAnimation } from "@/components/interactive/BackgroundAnimation";
 import { prisma } from "@/lib/prisma";
 
-const poppins = Poppins({
-  variable: "--font-poppins",
+const inter = Inter({ variable: "--font-inter", subsets: ["latin"], display: "swap" });
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
+  display: "swap",
 });
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -33,13 +32,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={poppins.variable} suppressHydrationWarning>
-      <body className="antialiased">
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-          <BackgroundAnimation />
-          {children}
-        </ThemeProvider>
-      </body>
+    <html
+      lang="en"
+      className={`${inter.variable} ${jetbrainsMono.variable}`}
+      data-scroll-behavior="smooth"
+    >
+      <body className="antialiased">{children}</body>
     </html>
   );
 }

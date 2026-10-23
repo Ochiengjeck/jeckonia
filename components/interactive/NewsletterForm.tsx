@@ -30,19 +30,19 @@ export function NewsletterForm() {
 
   return (
     <div className="mb-5">
-      <form onSubmit={handleSubmit} method="post" className="flex">
+      <form onSubmit={handleSubmit} method="post" className="flex items-center gap-3 border-b border-muted-border">
         <input
           type="email"
           name="email"
           placeholder="Your Email"
           required
-          className="w-full min-w-0 flex-1 rounded-l-card bg-background px-5 py-3 text-text shadow-inset-card outline-none focus:ring-2 focus:ring-primary/30"
+          className="w-full min-w-0 flex-1 bg-transparent py-3 text-foreground placeholder:text-text/50 outline-none"
         />
         <button
           type="submit"
           disabled={status === "submitting"}
           aria-label="Subscribe"
-          className="rounded-r-card bg-primary px-5 text-lg text-white transition-colors duration-300 hover:bg-primary-dark disabled:opacity-60"
+          className="text-lg text-accent transition-colors duration-200 hover:text-accent-dark disabled:opacity-60"
         >
           <Icon name="FaPaperPlane" />
         </button>

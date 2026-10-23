@@ -42,16 +42,16 @@ export function TestimonialCarousel({
       >
         {testimonials.map((testimonial) => (
           <div key={testimonial.id} className="box-border min-w-full px-[15px]">
-            <div className="relative rounded-card bg-card p-10 shadow-card">
+            <div className="relative border border-muted-border p-10">
               <Icon
                 name="FaQuoteLeft"
-                className="absolute top-5 left-5 text-3xl text-primary/10"
+                className="absolute top-5 left-5 text-3xl text-accent/10"
               />
-              <p className="mb-5 text-base leading-[1.8] text-text">
+              <p className="mb-5 text-lead text-foreground">
                 &ldquo;{testimonial.quote}&rdquo;
               </p>
               <div className="flex items-center">
-                <div className="mr-[15px] h-[60px] w-[60px] overflow-hidden rounded-full">
+                <div className="mr-[15px] h-[60px] w-[60px] overflow-hidden border border-muted-border">
                   <Image
                     src={testimonial.authorImageUrl}
                     alt={testimonial.authorName}
@@ -61,10 +61,10 @@ export function TestimonialCarousel({
                   />
                 </div>
                 <div>
-                  <h4 className="mb-1 text-lg font-semibold text-heading">
+                  <h4 className="mb-1 text-lg font-bold text-foreground">
                     {testimonial.authorName}
                   </h4>
-                  <p className="text-sm text-text">{testimonial.authorRole}</p>
+                  <p className="font-mono text-sm text-text">{testimonial.authorRole}</p>
                 </div>
               </div>
             </div>
@@ -77,26 +77,26 @@ export function TestimonialCarousel({
             <button
               aria-label="Previous testimonial"
               onClick={() => go(index - 1)}
-              className="flex h-[50px] w-[50px] items-center justify-center rounded-full bg-card text-lg text-primary shadow-card transition-colors duration-300 hover:bg-primary hover:text-white"
+              className="flex h-[50px] w-[50px] items-center justify-center border border-muted-border text-lg text-foreground transition-colors duration-200 hover:border-accent hover:text-accent"
             >
               <Icon name="FaArrowLeft" />
             </button>
             <button
               aria-label="Next testimonial"
               onClick={() => go(index + 1)}
-              className="flex h-[50px] w-[50px] items-center justify-center rounded-full bg-card text-lg text-primary shadow-card transition-colors duration-300 hover:bg-primary hover:text-white"
+              className="flex h-[50px] w-[50px] items-center justify-center border border-muted-border text-lg text-foreground transition-colors duration-200 hover:border-accent hover:text-accent"
             >
               <Icon name="FaArrowRight" />
             </button>
           </div>
-          <div className="mt-5 flex justify-center gap-2.5">
+          <div className="mt-5 flex justify-center gap-2">
             {testimonials.map((testimonial, i) => (
               <button
                 key={testimonial.id}
                 aria-label={`Go to testimonial ${i + 1}`}
                 onClick={() => go(i)}
-                className={`h-2.5 w-2.5 rounded-full transition-transform duration-300 ${
-                  i === index ? "scale-[1.3] bg-primary" : "bg-background"
+                className={`h-[3px] transition-all duration-300 ${
+                  i === index ? "w-8 bg-accent" : "w-4 bg-muted-border"
                 }`}
               />
             ))}

@@ -1,83 +1,95 @@
 import Image from "next/image";
-import { getProfile, getSocialLinks } from "@/lib/content";
+import { getProfile, getSocialLinks, getSiteSettings } from "@/lib/content";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { Typewriter } from "@/components/interactive/Typewriter";
 import { Reveal } from "@/components/interactive/Reveal";
+import { AutoFit } from "@/components/interactive/AutoFit";
+import { SECTION_IDS } from "@/lib/sectionIds";
 
 export async function Hero() {
-  const [profile, socialLinks] = await Promise.all([
+  const [profile, socialLinks, settings] = await Promise.all([
     getProfile(),
     getSocialLinks(),
+    getSiteSettings(),
   ]);
   if (!profile) return null;
 
   return (
     <section
-      id="home"
-      className="relative flex h-screen items-center overflow-hidden pt-20"
+      id={SECTION_IDS.home}
+      className="relative flex h-dvh items-center overflow-hidden pt-20"
     >
-      <div className="container mx-auto flex w-full max-w-[1200px] items-center justify-between gap-10 px-5 max-md:flex-col-reverse max-md:text-center">
-        <Reveal variant="fade-right" className="flex-1 max-md:mt-10">
-          <h3 className="mb-5 text-lg font-semibold text-primary">
-            {profile.greeting}
-          </h3>
-          <h1 className="mb-2.5 text-5xl font-bold text-heading max-lg:text-[40px] max-sm:text-[32px]">
+      {profile.showHeroImage && profile.heroImageUrl && (
+        <Reveal
+          variant="scale-in"
+          className="absolute top-0 right-0 hidden h-full w-[28vw] md:block"
+        >
+          <div className="relative h-full w-full overflow-hidden">
+            <Image
+              src={profile.heroImageUrl}
+              alt={profile.name}
+              fill
+              sizes="28vw"
+              className="object-cover opacity-60 grayscale transition-all duration-700 ease-out hover:scale-105 hover:opacity-100 hover:grayscale-0"
+              priority
+            />
+          </div>
+        </Reveal>
+      )}
+      <AutoFit className="container relative mx-auto max-w-[1200px] px-5">
+        <Reveal variant="fade-right" className="max-w-4xl">
+          <p className="mb-4 font-mono text-sm tracking-widest text-accent uppercase sm:mb-6">
+            {`// ${profile.greeting}`}
+          </p>
+          <h1 className="text-display font-black leading-[0.9] text-foreground">
             {profile.name}
           </h1>
-          <h2 className="mb-5 text-2xl font-semibold text-text max-lg:text-xl max-sm:text-lg">
+          <h2 className="mt-4 font-mono text-h3 text-accent sm:mt-6">
             <Typewriter text={profile.jobTitle} />
           </h2>
-          <p className="mb-[30px] max-w-[600px] text-base leading-[1.8] text-text max-md:mx-auto">
-            {profile.heroDescription}
-          </p>
-          <div className="mt-[30px] flex gap-5 max-md:justify-center">
+          <p className="mt-4 max-w-xl text-lead text-text sm:mt-6">{profile.heroDescription}</p>
+
+          <div className="mt-6 flex flex-wrap items-center gap-8 sm:mt-10">
             {profile.ctaButtons.map((cta) => (
-              <Button
-                key={cta.id}
-                href={cta.href}
-                variant={cta.style === "PRIMARY" ? "primary" : "outline"}
-              >
+              <Button key={cta.id} href={cta.href} variant={cta.style === "PRIMARY" ? "primary" : "ghost"}>
                 {cta.label}
               </Button>
             ))}
           </div>
-          <div className="mt-[30px] flex gap-[15px] max-md:justify-center">
-            {socialLinks.map((link) => (
-              <a
-                key={link.id}
-                href={link.url}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-card text-text shadow-card transition-all duration-300 hover:-translate-y-1 hover:text-primary"
-              >
-                <Icon name={link.iconKey ?? ""} />
-              </a>
-            ))}
-          </div>
+
+          {settings?.showSocialLinks && (
+            <div className="mt-6 flex gap-6 sm:mt-10">
+              {socialLinks.map((link) => (
+                <a
+                  key={link.id}
+                  href={link.url}
+                  className="text-xl text-text transition-colors duration-200 hover:text-accent"
+                >
+                  <Icon name={link.iconKey ?? ""} />
+                </a>
+              ))}
+            </div>
+          )}
+
+          {profile.showExperienceStats && profile.experienceStats.length > 0 && (
+            <div className="mt-8 flex flex-wrap gap-10 sm:mt-16">
+              {profile.experienceStats.map((stat) => (
+                <div key={stat.id} className="border-l border-muted-border pl-6">
+                  <div className="font-mono text-h3 text-accent">{stat.number}</div>
+                  <div className="text-sm text-text">{stat.label}</div>
+                </div>
+              ))}
+            </div>
+          )}
         </Reveal>
-        <Reveal
-          variant="fade-left"
-          className="flex flex-1 justify-end max-md:justify-center"
-        >
-          <div className="relative h-[350px] w-[350px] overflow-hidden rounded-full bg-card shadow-card max-sm:h-[250px] max-sm:w-[250px]">
-            {profile.heroImageUrl && (
-              <Image
-                src={profile.heroImageUrl}
-                alt={profile.name}
-                fill
-                sizes="350px"
-                className="object-cover"
-                priority
-              />
-            )}
-          </div>
-        </Reveal>
-      </div>
+      </AutoFit>
       <a
-        href="#about"
-        className="absolute bottom-[30px] left-1/2 flex -translate-x-1/2 flex-col items-center gap-2.5 text-sm font-medium text-text"
+        href={`#${SECTION_IDS.about}`}
+        className="absolute bottom-10 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2.5 text-sm font-mono text-text uppercase"
       >
-        <span>Scroll Down</span>
-        <Icon name="FaChevronDown" className="animate-bounce text-xl" />
+        <span>Scroll</span>
+        <Icon name="FaChevronDown" className="text-xl motion-safe:animate-bounce" />
       </a>
     </section>
   );

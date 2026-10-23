@@ -58,6 +58,32 @@ export default async function SiteSettingsPage() {
             className={inputClass}
           />
         </div>
+        <div className="space-y-2 border-t border-black/5 pt-4">
+          <label className="flex items-center gap-2 text-sm text-text">
+            <input
+              type="checkbox"
+              name="showSocialLinks"
+              defaultChecked={settings?.showSocialLinks ?? true}
+            />
+            Show social links (Hero + Footer)
+          </label>
+          <label className="flex items-center gap-2 text-sm text-text">
+            <input
+              type="checkbox"
+              name="showTechIcons"
+              defaultChecked={settings?.showTechIcons ?? true}
+            />
+            Show tech icon badges (Skills)
+          </label>
+          <label className="flex items-center gap-2 text-sm text-text">
+            <input
+              type="checkbox"
+              name="showNewsletter"
+              defaultChecked={settings?.showNewsletter ?? true}
+            />
+            Show newsletter signup (Footer)
+          </label>
+        </div>
         <SubmitButton>Save</SubmitButton>
       </form>
     </div>

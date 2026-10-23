@@ -45,6 +45,10 @@ next-env.d.ts
 /prisma/*.db-journal
 /data/
 
+# TEMPORARY local-only sqlite dev db (branch local-sqlite-dev)
+/dev.db
+/dev.db-journal
+
 # admin-uploaded content (not the bundled /public/icons assets)
 /public/uploads/
 
